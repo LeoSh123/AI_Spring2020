@@ -49,7 +49,7 @@ class AStar(BestFirstSearch):
         Remember: In Weighted-A* the f-score is defined by ((1-w) * cost) + (w * h(state)).
         Notice: You may use `search_node.g_cost`, `self.heuristic_weight`, and `self.heuristic_function`.
         """
-        return (((1 - self.heuristic_weight) * search_node.g_cost) + (self.heuristic_weight * self.heuristic_function.estimate(search_node)))
+        return (((1 - self.heuristic_weight) * search_node.g_cost) + (self.heuristic_weight * self.heuristic_function.estimate(search_node.state)))
 
     def _open_successor_node(self, problem: GraphProblem, successor_node: SearchNode):
         """

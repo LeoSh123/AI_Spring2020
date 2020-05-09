@@ -115,7 +115,10 @@ def toy_map_problem_experiments():
     # Ex.11
     # TODO: create an instance of `AStar` with the `AirDistHeuristic`,
     #       solve the same `toy_map_problem` with it and print the results (as before).
-    exit()  # TODO: remove!
+
+    aStar = AStar(AirDistHeuristic)
+    result = aStar.solve_problem(toy_map_problem)
+    print(result)
 
     # Ex.12
     # TODO:
