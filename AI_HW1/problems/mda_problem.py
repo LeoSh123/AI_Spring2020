@@ -260,7 +260,18 @@ class MDAProblem(GraphProblem):
                 generated set.
             Note: This method can be implemented using a single line of code. Try to do so.
         """
-        raise NotImplementedError  # TODO: remove this line!
+
+        """ ++++++ May be redundent. check if correct sets are created +++"""
+        reportedApartmentsSet = set()
+
+        for apartment in self.problem_input.reported_apartments:
+            reportedApartmentsSet.add(apartment)
+        assert issubclass(type(reportedApartmentsSet), set)
+
+        testsOnAmbulanceSet = state.tests_on_ambulance
+        assert issubclass(type(testsOnAmbulanceSet), set)
+
+        return reportedApartmentsSet - testsOnAmbulanceSet
 
     def get_all_certain_junctions_in_remaining_ambulance_path(self, state: MDAState) -> List[Junction]:
         """
