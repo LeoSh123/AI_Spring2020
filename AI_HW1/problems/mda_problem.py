@@ -78,7 +78,10 @@ class MDAState(GraphProblemState):
         #   (using equals `==` operator) because the class `Junction` explicitly
         #   implements the `__eq__()` method. The types `frozenset`, `ApartmentWithSymptomsReport`, `Laboratory`
         #   are also comparable (in the same manner).
-        raise NotImplementedError  # TODO: remove this line.
+        if self.current_location == other.current_location:
+            return True
+        else:
+            return False
 
     def __hash__(self):
         """
