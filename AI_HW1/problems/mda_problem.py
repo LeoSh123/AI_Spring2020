@@ -99,7 +99,8 @@ class MDAState(GraphProblemState):
          Notice that `sum()` can receive an *ITERATOR* as argument; That is, you can simply write something like this:
         >>> sum(<some expression using item> for item in some_collection_of_items)
         """
-        raise NotImplementedError  # TODO: remove this line.
+
+        return sum(1 for item in self.tests_on_ambulance)
 
 
 class MDAOptimizationObjective(Enum):
