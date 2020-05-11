@@ -220,7 +220,16 @@ class MDAProblem(GraphProblem):
         Use the method `self.map_distance_finder.get_map_cost_between()` to calculate the distance
          between to junctions.
         """
-        raise NotImplementedError  # TODO: remove this line!
+        assert isinstance(prev_state, MDAState)
+        assert isinstance(succ_state, MDAState)
+
+        distance_cost = self.map_distance_finder.get_map_cost_between(prev_state.current_site, succ_state.current_site)
+        tests_travel_distance_cost = sum(item.nr_roommates for item in prev_state.tests_on_ambulance) * distance_cost
+
+        return MDACost(distance_cost=distance_cost, tests_travel_distance_cost=tests_travel_distance_cost)
+
+
+
 
     def is_goal(self, state: GraphProblemState) -> bool:
         """
