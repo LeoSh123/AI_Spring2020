@@ -224,9 +224,11 @@ class MDAProblem(GraphProblem):
         assert isinstance(succ_state, MDAState)
 
         distance_cost = self.map_distance_finder.get_map_cost_between(prev_state.current_site, succ_state.current_site)
-        tests_travel_distance_cost = sum(item.nr_roommates for item in prev_state.tests_on_ambulance) * distance_cost
+        if distance_cost is not None:
+            tests_travel_distance_cost = sum(item.nr_roommates for item in prev_state.tests_on_ambulance) * distance_cost
+            return MDACost(distance_cost=distance_cost, tests_travel_distance_cost=tests_travel_distance_cost)
 
-        return MDACost(distance_cost=distance_cost, tests_travel_distance_cost=tests_travel_distance_cost)
+        return MDACost(distance_cost=float('inf'), tests_travel_distance_cost=float('inf'))
 
 
 
