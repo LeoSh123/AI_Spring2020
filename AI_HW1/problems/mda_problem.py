@@ -103,7 +103,7 @@ class MDAState(GraphProblemState):
         >>> sum(<some expression using item> for item in some_collection_of_items)
         """
 
-        return sum(1 for item in self.tests_on_ambulance)
+        return sum(item.nr_roommates for item in self.tests_on_ambulance)
 
 
 class MDAOptimizationObjective(Enum):
@@ -209,7 +209,29 @@ class MDAProblem(GraphProblem):
         """
 
         assert isinstance(state_to_expand, MDAState)
-        raise NotImplementedError  # TODO: remove this line!
+        LeftCapacity = self.problem_input.ambulance.taken_tests_storage_capacity\
+                       - state_to_expand.get_total_nr_tests_taken_and_stored_on_ambulance()
+
+        LeftMatoshim = state_to_expand.nr_matoshim_on_ambulance
+
+        # Find all possible laboratories
+        if state_to_expand.get_total_nr_tests_taken_and_stored_on_ambulance() > 0:  # Not an empty ambulance
+            for lab in self.problem_input.laboratories:  # Iterate over all labs
+                if not state_to_expand.visited_labs.__contains__(lab):  # Not a visited lab
+                    newState = MDAState(lab)        # yield a new state
+                    yield OperatorResult(successor_state=newState,
+                                         operator_cost=self.get_operator_cost(state_to_expand, newState)
+                                         , operator_name='go to ' + lab.name)
+
+        # Find all possible apartments
+        for apartment in self.get_reported_apartments_waiting_to_visit():  # iterate over all apartments in line
+            if apartment.nr_roommates <= LeftMatoshim:  # Make sure enough Matoshim for the apartment
+                if apartment.nr_roommates <= LeftCapacity:  # Make sure enough capacity for all roommates
+                    newState = MDAState(apartment)
+                    yield OperatorResult(successor_state=newState,
+                                         operator_cost=self.get_operator_cost(state_to_expand, newState)
+                                         , operator_name='visit ' + apartment.reporter_name)
+
 
     def get_operator_cost(self, prev_state: MDAState, succ_state: MDAState) -> MDACost:
         """
@@ -240,8 +262,9 @@ class MDAProblem(GraphProblem):
          Use sets/frozensets comparison (`some_set == some_other_set`).
          In order to create a set from some other collection (list/tuple) you can just `set(some_other_collection)`.
         """
+
         assert isinstance(state, MDAState)
-        raise NotImplementedError  # TODO: remove the line!
+        return state.tests_transferred_to_lab == set(self.problem_input.reported_apartments)
 
     def get_zero_cost(self) -> Cost:
         """
