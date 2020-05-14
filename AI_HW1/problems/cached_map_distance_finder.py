@@ -56,8 +56,8 @@ class CachedMapDistanceFinder:
 
         "We solve a new problem because the distance isn't in the cached"
         map_problem = MapProblem(self.streets_map, src_junction.index, tgt_junction.index)
-        problem_res = self.map_problem_solver(map_problem)
-        cached_res = problem_res.solution_cost()
+        problem_res = self.map_problem_solver.solve_problem(map_problem)
+        cached_res = problem_res.solution_cost
         self._insert_to_cache((src_junction.index, tgt_junction.index), cached_res)
 
         "if the value is different than None so there is a solution from the given junctions"

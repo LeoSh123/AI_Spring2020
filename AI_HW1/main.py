@@ -147,7 +147,7 @@ def toy_map_problem_experiments():
     #     with `AirDistHeuristic` and `toy_map_problem`.
 
 
-    run_astar_for_weights_in_range(AirDistHeuristic, toy_map_problem)
+    # run_astar_for_weights_in_range(AirDistHeuristic, toy_map_problem)
 
 
 

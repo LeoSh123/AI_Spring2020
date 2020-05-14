@@ -218,16 +218,25 @@ class MDAProblem(GraphProblem):
         if state_to_expand.get_total_nr_tests_taken_and_stored_on_ambulance() > 0:  # Not an empty ambulance
             for lab in self.problem_input.laboratories:  # Iterate over all labs
                 if not state_to_expand.visited_labs.__contains__(lab):  # Not a visited lab
-                    newState = MDAState(lab)        # yield a new state
+                    newState = MDAState(current_site= lab, tests_on_ambulance = frozenset(),
+                                        tests_transferred_to_lab = Union(state_to_expand.tests_on_ambulance, state_to_expand.tests_transferred_to_lab),
+                                        nr_matoshim_on_ambulance = state_to_expand.nr_matoshim_on_ambulance + lab.max_nr_matoshim,
+                                        visited_labs = Union(state_to_expand.visited_labs, lab) )        # yield a new state
                     yield OperatorResult(successor_state=newState,
                                          operator_cost=self.get_operator_cost(state_to_expand, newState)
                                          , operator_name='go to ' + lab.name)
 
         # Find all possible apartments
-        for apartment in self.get_reported_apartments_waiting_to_visit():  # iterate over all apartments in line
+        for apartment in self.get_reported_apartments_waiting_to_visit(state_to_expand):  # iterate over all apartments in line
             if apartment.nr_roommates <= LeftMatoshim:  # Make sure enough Matoshim for the apartment
                 if apartment.nr_roommates <= LeftCapacity:  # Make sure enough capacity for all roommates
-                    newState = MDAState(apartment)
+                    newState = MDAState(current_site = apartment,
+                                        tests_on_ambulance = frozenset(item for item in state_to_expand.tests_on_ambulance),
+                                        #tests_on_ambulance = frozenset().union(frozenset(item for item in state_to_expand.tests_on_ambulance), apartment),
+                                        tests_transferred_to_lab= state_to_expand.tests_transferred_to_lab,
+                                        nr_matoshim_on_ambulance= state_to_expand.nr_matoshim_on_ambulance - apartment.nr_roommates,
+                                        visited_labs= state_to_expand.visited_labs)
+
                     yield OperatorResult(successor_state=newState,
                                          operator_cost=self.get_operator_cost(state_to_expand, newState)
                                          , operator_name='visit ' + apartment.reporter_name)
@@ -245,13 +254,20 @@ class MDAProblem(GraphProblem):
         assert isinstance(prev_state, MDAState)
         assert isinstance(succ_state, MDAState)
 
-        distance_cost = self.map_distance_finder.get_map_cost_between(prev_state.current_site, succ_state.current_site)
+        if isinstance(prev_state.current_site, Junction):
+            distance_cost = self.map_distance_finder.get_map_cost_between(prev_state.current_site,
+                                                                          succ_state.current_site.location)
+
+        else:
+            distance_cost = self.map_distance_finder.get_map_cost_between(prev_state.current_site.location,
+                                                                          succ_state.current_site.location)
+
         if distance_cost is not None:
-            tests_travel_distance_cost = sum(item.nr_roommates for item in prev_state.tests_on_ambulance) * distance_cost
+            tests_travel_distance_cost = sum(
+                item.nr_roommates for item in prev_state.tests_on_ambulance) * distance_cost
             return MDACost(distance_cost=distance_cost, tests_travel_distance_cost=tests_travel_distance_cost)
 
         return MDACost(distance_cost=float('inf'), tests_travel_distance_cost=float('inf'))
-
 
 
 
@@ -294,7 +310,7 @@ class MDAProblem(GraphProblem):
         assert issubclass(type(reportedApartmentsSet), set)
 
         testsOnAmbulanceSet = state.tests_on_ambulance
-        assert issubclass(type(testsOnAmbulanceSet), set)
+        assert issubclass(type(testsOnAmbulanceSet), frozenset)
 
         return reportedApartmentsSet - testsOnAmbulanceSet
 
