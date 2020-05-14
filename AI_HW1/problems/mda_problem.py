@@ -219,9 +219,9 @@ class MDAProblem(GraphProblem):
             for lab in self.problem_input.laboratories:  # Iterate over all labs
                 if not state_to_expand.visited_labs.__contains__(lab):  # Not a visited lab
                     newState = MDAState(current_site= lab, tests_on_ambulance = frozenset(),
-                                        tests_transferred_to_lab = Union(state_to_expand.tests_on_ambulance, state_to_expand.tests_transferred_to_lab),
+                                        tests_transferred_to_lab = frozenset(state_to_expand.tests_on_ambulance).union(state_to_expand.tests_transferred_to_lab),
                                         nr_matoshim_on_ambulance = state_to_expand.nr_matoshim_on_ambulance + lab.max_nr_matoshim,
-                                        visited_labs = Union(state_to_expand.visited_labs, lab) )        # yield a new state
+                                        visited_labs = frozenset(state_to_expand.visited_labs).union({lab}))    # yield a new state
                     yield OperatorResult(successor_state=newState,
                                          operator_cost=self.get_operator_cost(state_to_expand, newState)
                                          , operator_name='go to ' + lab.name)
@@ -230,8 +230,9 @@ class MDAProblem(GraphProblem):
         for apartment in self.get_reported_apartments_waiting_to_visit(state_to_expand):  # iterate over all apartments in line
             if apartment.nr_roommates <= LeftMatoshim:  # Make sure enough Matoshim for the apartment
                 if apartment.nr_roommates <= LeftCapacity:  # Make sure enough capacity for all roommates
+                    #newset= {apartment, (item for item in state_to_expand.tests_on_ambulance)}
                     newState = MDAState(current_site = apartment,
-                                        tests_on_ambulance = frozenset(item for item in state_to_expand.tests_on_ambulance),
+                                        tests_on_ambulance = frozenset(state_to_expand.tests_on_ambulance).union({apartment}),
                                         #tests_on_ambulance = frozenset().union(frozenset(item for item in state_to_expand.tests_on_ambulance), apartment),
                                         tests_transferred_to_lab= state_to_expand.tests_transferred_to_lab,
                                         nr_matoshim_on_ambulance= state_to_expand.nr_matoshim_on_ambulance - apartment.nr_roommates,
