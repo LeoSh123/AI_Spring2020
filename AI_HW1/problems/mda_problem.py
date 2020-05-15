@@ -315,14 +315,9 @@ class MDAProblem(GraphProblem):
 
         """ ++++++ May be redundent. check if correct sets are created +++"""
         reportedApartmentsSet = set(apartment for apartment in self.problem_input.reported_apartments)
-
-        #for apartment in self.problem_input.reported_apartments:
-         #   reportedApartmentsSet.add(apartment)
-        #assert issubclass(type(reportedApartmentsSet), set)
-
         testsOnAmbulanceSet = state.tests_on_ambulance
         testsGivenToLabs = state.tests_transferred_to_lab
-        #assert issubclass(type(testsOnAmbulanceSet), frozenset)
+
 
         newset1 = reportedApartmentsSet-testsOnAmbulanceSet
         newset = newset1-testsGivenToLabs
@@ -338,4 +333,13 @@ class MDAProblem(GraphProblem):
             Use the method `self.get_reported_apartments_waiting_to_visit(state)`.
             Use python's `sorted(..., key=...)` function.
         """
-        raise NotImplementedError  # TODO: remove this line!
+        def sorter(item):
+            if isinstance(item.current_site, ApartmentWithSymptomsReport) or isinstance(item.current_site, Laboratory):
+                return item.current_site.location.index
+            assert isinstance(item.current_site, Junction)
+            return item.current_site.index
+
+        junctionsList = List(self.get_reported_apartments_waiting_to_visit(state))
+        sorted_list = sorted(junctionsList, key = sorter)
+
+        return sorted_list
