@@ -78,12 +78,12 @@ class MDAState(GraphProblemState):
         #   (using equals `==` operator) because the class `Junction` explicitly
         #   implements the `__eq__()` method. The types `frozenset`, `ApartmentWithSymptomsReport`, `Laboratory`
         #   are also comparable (in the same manner).
-        if self.current_location == other.current_location:
-            if self.tests_on_ambulance == other.tests_on_ambulance:
-                if self.tests_transferred_to_lab == other.tests_transferred_to_lab:
-                    if self.nr_matoshim_on_ambulance == other.nr_matoshim_on_ambulance:
-                        if self.visited_labs == other.visited_labs:
-                            return True
+        if self.current_location == other.current_location\
+            and self.tests_on_ambulance == other.tests_on_ambulance\
+            and self.tests_transferred_to_lab == other.tests_transferred_to_lab\
+            and self.nr_matoshim_on_ambulance == other.nr_matoshim_on_ambulance\
+            and self.visited_labs == other.visited_labs:
+            return True
         else:
             return False
 
@@ -218,35 +218,31 @@ class MDAProblem(GraphProblem):
         LeftMatoshim = state_to_expand.nr_matoshim_on_ambulance
 
         # Find all possible apartments
-        foundApartment = False
+        # foundApartment = False
         for apartment in self.get_reported_apartments_waiting_to_visit(state_to_expand):  # iterate over all apartments in line
-            if apartment.nr_roommates <= LeftMatoshim:  # Make sure enough Matoshim for the apartment
-                if apartment.nr_roommates <= LeftCapacity:  # Make sure enough capacity for all roommates
-                    foundApartment = True
-                    newAprState = MDAState(current_site = apartment,
-                                        tests_on_ambulance = frozenset(state_to_expand.tests_on_ambulance).union({apartment}),
-                                        tests_transferred_to_lab= state_to_expand.tests_transferred_to_lab,
-                                        nr_matoshim_on_ambulance= state_to_expand.nr_matoshim_on_ambulance - apartment.nr_roommates,
-                                        visited_labs= state_to_expand.visited_labs)
+            if apartment.nr_roommates <= LeftMatoshim and apartment.nr_roommates <= LeftCapacity:  # Make sure enough Matoshim for the apartment
+                # foundApartment = True
+                newAprState = MDAState(current_site = apartment,
+                                    tests_on_ambulance = frozenset(state_to_expand.tests_on_ambulance).union({apartment}),
+                                    tests_transferred_to_lab = frozenset(state_to_expand.tests_transferred_to_lab),
+                                    nr_matoshim_on_ambulance = int(state_to_expand.nr_matoshim_on_ambulance - apartment.nr_roommates),
+                                    visited_labs = frozenset(state_to_expand.visited_labs))
 
-                    yield OperatorResult(successor_state=newAprState,
-                                         operator_cost=self.get_operator_cost(state_to_expand, newAprState)
-                                         , operator_name='visit ' + apartment.reporter_name)
+                yield OperatorResult(successor_state=newAprState,
+                                     operator_cost=self.get_operator_cost(state_to_expand, newAprState)
+                                     , operator_name='visit ' + apartment.reporter_name)
 
         # Find all possible laboratories
-        if len(state_to_expand.tests_on_ambulance) > 0 or not foundApartment:  # Not an empty ambulance or not enough matoshim
-            for lab in self.problem_input.laboratories:  # Iterate over all labs
-                if not state_to_expand.visited_labs.__contains__(lab):  # Not a visited lab
-                    newLabState = MDAState(current_site=lab, tests_on_ambulance=frozenset(),
-                                        tests_transferred_to_lab=frozenset(
-                                            state_to_expand.tests_on_ambulance).union(
-                                            state_to_expand.tests_transferred_to_lab),
-                                        nr_matoshim_on_ambulance=state_to_expand.nr_matoshim_on_ambulance + lab.max_nr_matoshim,
-                                        visited_labs=frozenset(state_to_expand.visited_labs).union(
-                                            {lab}))  # yield a new state
-                    yield OperatorResult(successor_state=newLabState,
-                                         operator_cost=self.get_operator_cost(state_to_expand, newLabState),
-                                         operator_name='go to ' + lab.name)
+        for lab in self.problem_input.laboratories:  # Iterate over all labs
+            if lab not in state_to_expand.visited_labs or len(state_to_expand.tests_on_ambulance) > 0:  # Not a visited lab
+                newLabState = MDAState(current_site=lab, tests_on_ambulance=frozenset(),
+                                    tests_transferred_to_lab =frozenset(
+                                        state_to_expand.tests_on_ambulance).union(state_to_expand.tests_transferred_to_lab),
+                                    nr_matoshim_on_ambulance=int(state_to_expand.nr_matoshim_on_ambulance + lab.max_nr_matoshim),
+                                    visited_labs=frozenset(state_to_expand.visited_labs).union({lab}))  # yield a new state
+                yield OperatorResult(successor_state=newLabState,
+                                     operator_cost=self.get_operator_cost(state_to_expand, newLabState),
+                                     operator_name='go to ' + lab.name)
 
 
 
@@ -265,20 +261,15 @@ class MDAProblem(GraphProblem):
         assert isinstance(prev_state, MDAState)
         assert isinstance(succ_state, MDAState)
 
-        if isinstance(prev_state.current_site, Junction):
-            distance_cost = self.map_distance_finder.get_map_cost_between(prev_state.current_site,
-                                                                          succ_state.current_site.location)
+        distance_cost = self.map_distance_finder.get_map_cost_between(prev_state.current_location, succ_state.current_location)
 
-        else:
-            distance_cost = self.map_distance_finder.get_map_cost_between(prev_state.current_site.location,
-                                                                          succ_state.current_site.location)
-
+        # What is Travel distance cost??
         if distance_cost is not None:
             tests_travel_distance_cost = sum(
                 item.nr_roommates for item in prev_state.tests_on_ambulance) * distance_cost
             return MDACost(distance_cost=distance_cost, tests_travel_distance_cost=tests_travel_distance_cost)
-
-        return MDACost(distance_cost=float('inf'), tests_travel_distance_cost=float('inf'))
+        else:
+            return MDACost(distance_cost=float('inf'), tests_travel_distance_cost=float('inf'))
 
 
 
@@ -313,14 +304,12 @@ class MDAProblem(GraphProblem):
             Note: This method can be implemented using a single line of code. Try to do so.
         """
 
-        """ ++++++ May be redundent. check if correct sets are created +++"""
-        reportedApartmentsSet = set(apartment for apartment in self.problem_input.reported_apartments)
-        testsOnAmbulanceSet = state.tests_on_ambulance
-        testsGivenToLabs = state.tests_transferred_to_lab
+        reportedApartmentsSet = set(self.problem_input.reported_apartments)
+        testsOnAmbulanceSet = set(state.tests_on_ambulance)
+        testsGivenToLabs = set(state.tests_transferred_to_lab)
 
-
-        newset1 = reportedApartmentsSet-testsOnAmbulanceSet
-        newset = newset1-testsGivenToLabs
+        newset1 = set(reportedApartmentsSet-testsOnAmbulanceSet)
+        newset = set(newset1-testsGivenToLabs)
         return newset
 
     def get_all_certain_junctions_in_remaining_ambulance_path(self, state: MDAState) -> List[Junction]:
@@ -334,12 +323,11 @@ class MDAProblem(GraphProblem):
             Use python's `sorted(..., key=...)` function.
         """
         def sorter(item):
-            if isinstance(item.current_site, ApartmentWithSymptomsReport) or isinstance(item.current_site, Laboratory):
-                return item.current_site.location.index
-            assert isinstance(item.current_site, Junction)
-            return item.current_site.index
+            assert isinstance(item, Junction)
+            return item.index
 
-        junctionsList = List(self.get_reported_apartments_waiting_to_visit(state))
+        junctionsList = list(item.location for item in self.get_reported_apartments_waiting_to_visit(state))
+        junctionsList.append(state.current_location)
         sorted_list = sorted(junctionsList, key = sorter)
 
         return sorted_list
