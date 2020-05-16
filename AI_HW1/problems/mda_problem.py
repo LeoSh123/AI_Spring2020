@@ -235,10 +235,14 @@ class MDAProblem(GraphProblem):
         # Find all possible laboratories
         for lab in self.problem_input.laboratories:  # Iterate over all labs
             if lab not in state_to_expand.visited_labs or len(state_to_expand.tests_on_ambulance) > 0:  # Not a visited lab
-                newLabState = MDAState(current_site=lab, tests_on_ambulance=frozenset(),
+                unaryInt = 0
+                if lab not in state_to_expand.visited_labs:
+                    unaryInt = 1
+                newLabState = MDAState(current_site= lab
+                                       , tests_on_ambulance=frozenset(),
                                     tests_transferred_to_lab =frozenset(
                                         state_to_expand.tests_on_ambulance).union(state_to_expand.tests_transferred_to_lab),
-                                    nr_matoshim_on_ambulance=int(state_to_expand.nr_matoshim_on_ambulance + lab.max_nr_matoshim),
+                                    nr_matoshim_on_ambulance= state_to_expand.nr_matoshim_on_ambulance + (unaryInt * lab.max_nr_matoshim),
                                     visited_labs=frozenset(state_to_expand.visited_labs).union({lab}))  # yield a new state
                 yield OperatorResult(successor_state=newLabState,
                                      operator_cost=self.get_operator_cost(state_to_expand, newLabState),
