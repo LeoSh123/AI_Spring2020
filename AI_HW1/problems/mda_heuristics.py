@@ -92,15 +92,16 @@ class MDASumAirDistHeuristic(HeuristicFunction):
         else:
             currentJunction = state.current_location  # Initiate current Junction
             nextJunction = state.current_location     # Initiate Next Junction
-            remainingJunctions = all_certain_junctions_in_remaining_ambulance_path - currentJunction # remainig without current
+            remainingJunctions = all_certain_junctions_in_remaining_ambulance_path - {currentJunction} # remainig without current
             sum = 0  # sum of distances
 
-            while len(remainingJunctions) > 0:  # while Junction in path
-                min = None
-                for junction in remainingJunctions: # iterate over all possible junctions
+            while len(remainingJunctions) > 0:  # while there is a Junction in path
+                min = int(2147483646)                # MAX int
+                for junction in remainingJunctions:  # iterate over all possible junctions
                     distance = self.cached_air_distance_calculator.get_air_distance_between_junctions(currentJunction, junction)
                     if distance <= min:
-                        nextJunction = junction # update minimum
+                        min = distance
+                        nextJunction = junction  # update minimum
                 sum = sum + self.cached_air_distance_calculator.get_air_distance_between_junctions(currentJunction, nextJunction)
                 remainingJunctions = remainingJunctions - {nextJunction}
                 currentJunction = nextJunction
