@@ -99,7 +99,7 @@ def run_astar_for_weights_in_range(heuristic_type: HeuristicFunctionType, proble
         ASTAR = AStar(heuristic_type, num, max_nr_states_to_expand)
         result = ASTAR.solve_problem(problem)
         if result.is_solution_found:
-            solution_cost_list.append(result.solution_cost)
+            solution_cost_list.append(result.solution_g_cost)
             expanded_list.append(result.nr_expanded_states)
             weight_list.append(num)
 
@@ -147,7 +147,7 @@ def toy_map_problem_experiments():
     #     with `AirDistHeuristic` and `toy_map_problem`.
 
 
-    # run_astar_for_weights_in_range(AirDistHeuristic, toy_map_problem)
+    run_astar_for_weights_in_range(AirDistHeuristic, toy_map_problem)
 
 
 
@@ -229,13 +229,13 @@ def mda_problem_with_weighted_astar_experiments():
     # TODO: Call here the function `run_astar_for_weights_in_range()`
     #       with `MDAMSTAirDistHeuristic`
     #       over the `small_mda_problem_with_distance_cost`.
-    exit()  # TODO: remove!
+    run_astar_for_weights_in_range(MDAMSTAirDistHeuristic, small_mda_problem_with_distance_cost)
 
     # Ex.25
     # TODO: Call here the function `run_astar_for_weights_in_range()`
     #       with `MDASumAirDistHeuristic`
     #       over the `moderate_mda_problem_with_distance_cost`.
-    exit()  # TODO: remove!
+    run_astar_for_weights_in_range(MDASumAirDistHeuristic, moderate_mda_problem_with_distance_cost)
 
 
 def multiple_objectives_mda_problem_experiments():
