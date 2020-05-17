@@ -271,9 +271,9 @@ class MDAProblem(GraphProblem):
         if distance_cost is not None:
             tests_travel_distance_cost = sum(
                 item.nr_roommates for item in prev_state.tests_on_ambulance) * distance_cost
-            return MDACost(distance_cost=distance_cost, tests_travel_distance_cost=tests_travel_distance_cost)
+            return MDACost(distance_cost=distance_cost, tests_travel_distance_cost=tests_travel_distance_cost, optimization_objective=self.optimization_objective)
         else:
-            return MDACost(distance_cost=float('inf'), tests_travel_distance_cost=float('inf'))
+            return MDACost(distance_cost=float('inf'), tests_travel_distance_cost=float('inf'), optimization_objective=self.optimization_objective)
 
 
 
