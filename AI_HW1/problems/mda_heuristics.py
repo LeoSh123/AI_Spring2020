@@ -199,6 +199,14 @@ class MDATestsTravelDistToNearestLabHeuristic(HeuristicFunction):
                        for lab in labs)
 
         reportedApartments = self.problem.get_reported_apartments_waiting_to_visit(state)
-        
 
-        return sum(air_dist_to_closest_lab(apartment.location)*apartment.nr_roommates for apartment in reportedApartments)
+        firstSum = 0
+        currentSite = state.current_site
+        if currentSite in reportedApartments:
+            firstSum = air_dist_to_closest_lab(currentSite.location)*state.get_total_nr_tests_taken_and_stored_on_ambulance()
+
+        reportedApartments = reportedApartments - {currentSite}
+
+        othersSum = sum(air_dist_to_closest_lab(apartment.location)*apartment.nr_roommates for apartment in reportedApartments)
+
+        return firstSum + othersSum
