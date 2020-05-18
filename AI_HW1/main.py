@@ -248,11 +248,15 @@ def multiple_objectives_mda_problem_experiments():
     # Ex.31
     # TODO: create an instance of `AStar` with the `MDATestsTravelDistToNearestLabHeuristic`,
     #       solve the `moderate_mda_problem_with_tests_travel_dist_cost` with it and print the results.
+
     ASTAR = AStar(MDATestsTravelDistToNearestLabHeuristic)
     result = ASTAR.solve_problem(moderate_mda_problem_with_tests_travel_dist_cost)
     print(result)
 
-    exit()  # TODO: remove!
+    
+
+
+
 
     # Ex.34
     # TODO: Implement the algorithm A_2 described in this exercise in the assignment instructions.
@@ -266,8 +270,18 @@ def multiple_objectives_mda_problem_experiments():
     #          has to return whether to add this just-created-node to the `open` queue. Remember that in python
     #          you can pass an argument to a function by its name `some_func(argument_name=some_value)`.
     #       Solve the `moderate_mda_problem_with_tests_travel_dist_cost` with it and print the results.
-    exit()  # TODO: remove!
 
+    AStar_AirDist = AStar(MDAMSTAirDistHeuristic)
+
+    result1 = AStar_AirDist.solve_problem(moderate_mda_problem_with_distance_cost)
+    optimal_distance_cost = result1.solution_g_cost
+    eps = 0.6
+    max_distance_cost = (1 + eps) * optimal_distance_cost
+    # myCriterion = lambda node: (node.cost.distance_cost <= max_distance_cost)
+    Astar_TravelDist = AStar(MDATestsTravelDistToNearestLabHeuristic,
+                             open_criterion = (lambda node: (node.cost.distance_cost <= max_distance_cost)))
+    result = Astar_TravelDist.solve_problem(moderate_mda_problem_with_tests_travel_dist_cost)
+    print(result)
 
 def mda_problem_with_astar_epsilon_experiments():
     print()
@@ -315,11 +329,11 @@ def run_all_experiments():
     print('Running all experiments')
     # toy_map_problem_experiments()
     # basic_mda_problem_experiments()
-    #  mda_problem_with_astar_experiments()
+    # mda_problem_with_astar_experiments()
     #  mda_problem_with_weighted_astar_experiments()
     multiple_objectives_mda_problem_experiments()
-    mda_problem_with_astar_epsilon_experiments()
-    mda_problem_anytime_astar_experiments()
+    #mda_problem_with_astar_epsilon_experiments()
+    #mda_problem_anytime_astar_experiments()
 
 
 if __name__ == '__main__':
