@@ -69,4 +69,50 @@ class AStarEpsilon(AStar):
          for the extracted (and returned) node.
         """
 
-        raise NotImplementedError  # TODO: remove!
+        if self.open.is_empty():
+            return None
+        NodeList = list()
+        while not self.open.is_empty():   # Get the nodes to list
+            NodeList.append(self.open.pop_next_node())
+
+        OpenMinimumExpandingPriority = min(node.expanding_priority
+                                            for node in NodeList)
+
+        FocalMinimumExpandingPriority = (1 + self.focal_epsilon) * OpenMinimumExpandingPriority
+
+
+        """
+        
+        if self.max_focal_size != None:
+            FocalList = list(node for node in NodeList if node.expanding_priority <= FocalMinimumExpandingPriority
+                         and FocalList.__len__() <= self.max_focal_size)  # TODO: unclear if actually works
+        else:
+            FocalList = list(node for node in NodeList if node.expanding_priority <= FocalMinimumExpandingPriority)
+        
+        
+        """
+        FocalList = list()
+
+        for node in NodeList:
+            if node.expanding_priority <= FocalMinimumExpandingPriority:
+                if self.max_focal_size != None:
+                    if FocalList.__len__() < self.max_focal_size:
+                        FocalList.append(node)
+                else:
+                    FocalList.append(node)
+
+        focalValuesArray = np.array(self.within_focal_priority_function(node, problem, self) for node in FocalList)
+
+        minIndex = np.argmin(focalValuesArray)
+
+        DesiredNode = FocalList.pop(minIndex)
+
+        NodeList.remove(DesiredNode)
+
+        for node in NodeList:
+            self.open.push_node(node)
+
+        if self.use_close:
+            self.close.add_node(DesiredNode)
+
+        return DesiredNode
