@@ -92,9 +92,7 @@ class AStarEpsilon(AStar):
                 else:
                     break
 
-        focalValuesArray = np.array(self.within_focal_priority_function(node, problem, self) for node in FocalList)
-
-        minIndex = np.argmin(focalValuesArray)
+        minIndex = np.argmin([self.within_focal_priority_function(node, problem, self) for node in FocalList])
 
         DesiredNode = FocalList.pop(minIndex)
 
