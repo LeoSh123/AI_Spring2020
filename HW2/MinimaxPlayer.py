@@ -20,6 +20,8 @@ class MinimaxPlayer:
         depth = 1
 
         move, numOfNodes, value = self.Minimax(self.board, depth, 1, self.loc)
+        x = move[0] - self.loc[0]
+        y = move[1] - self.loc[1]
         last_iteration_time = T.time() - ID_start_time
         next_iteration_time = self.time_bound(numOfNodes, last_iteration_time, depth)
         time_until_now = T.time() - ID_start_time
@@ -28,11 +30,13 @@ class MinimaxPlayer:
             depth += 1
             iteration_start_time = T.time()
             move, numOfNodes, value = self.Minimax(self.board, depth, 1, self.loc)
+            x = move[0] - self.loc[0]
+            y = move[1] - self.loc[1]
             last_iteration_time = T.time() - iteration_start_time
             next_iteration_time = self.time_bound(numOfNodes, last_iteration_time, depth)
             time_until_now = T.time() - ID_start_time
 
-        return move
+        return x, y
 
     def set_rival_move(self, loc):
         self.board[self.getLoc(self.board, 2)] = -1
@@ -93,6 +97,8 @@ class MinimaxPlayer:
             return CurMinLoc, CurNumOfNodes, CurMin
 
     def time_bound(self, numOfNodes: int, lastIterationTime, lastDepth) -> (float):
+        if numOfNodes == 0:
+            pass
         averageTimePerNode = lastIterationTime / numOfNodes
         nextTreeNumOfNodes = numOfNodes + pow(3, lastDepth + 1)
 

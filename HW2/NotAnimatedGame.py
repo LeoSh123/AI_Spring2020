@@ -169,10 +169,12 @@ def create_flags():
 
 if __name__ == '__main__':
     # print('runing')
-    args = sys.argv.copy()
+    # args = sys.argv.copy()
 
-    player_1_type = args[1]
-    player_2_type = args[2]
+    # player_1_type = args[1]
+    # player_2_type = args[2]
+    player_1_type = "MinimaxPlayer"
+    player_2_type = "SimplePlayer"
     module_1 = __import__(player_1_type)
     module_2 = __import__(player_2_type)
     player_1 = get_player(player_1_type, module_1)
