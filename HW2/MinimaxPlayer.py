@@ -1,4 +1,4 @@
-import time
+import time as T
 
 class MinimaxPlayer:
     def __init__(self):
@@ -16,7 +16,23 @@ class MinimaxPlayer:
                     break
 
     def make_move(self, time) -> (tuple):
-        pass
+        ID_start_time = T.time()
+        depth = 1
+
+        move, numOfNodes, value = self.Minimax(self.board, depth, 1, self.loc)
+        last_iteration_time = T.time() - ID_start_time
+        next_iteration_time = self.time_bound(numOfNodes, last_iteration_time, depth)
+        time_until_now = T.time() - ID_start_time
+
+        while time_until_now + next_iteration_time < time:
+            depth += 1
+            iteration_start_time = T.time()
+            move, numOfNodes, value = self.Minimax(self.board, depth, 1, self.loc)
+            last_iteration_time = T.time() - iteration_start_time
+            next_iteration_time = self.time_bound(numOfNodes, last_iteration_time, depth)
+            time_until_now = T.time() - ID_start_time
+
+        return move
 
     def set_rival_move(self, loc):
         self.board[self.getLoc(self.board, 2)] = -1
@@ -78,7 +94,7 @@ class MinimaxPlayer:
 
     def time_bound(self, numOfNodes: int, lastIterationTime, lastDepth) -> (float):
         averageTimePerNode = lastIterationTime / numOfNodes
-        nextTreeNumOfNodes = numOfNodes + pow(4, lastDepth + 1)
+        nextTreeNumOfNodes = numOfNodes + pow(3, lastDepth + 1)
 
         return ((averageTimePerNode * nextTreeNumOfNodes) + lastIterationTime)
 
