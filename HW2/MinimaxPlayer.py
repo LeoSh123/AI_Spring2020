@@ -1,4 +1,6 @@
 import time as T
+MAX_UTILITY = 15
+MIN_UTILITY = -15
 
 class MinimaxPlayer:
     def __init__(self):
@@ -54,26 +56,57 @@ class MinimaxPlayer:
         self.board[self.getLoc(self.board, 2)] = -1
         self.board[loc] = 2
 
-    # TODO: Implement a new one
-    def Minimax_heuristic(self, board, loc, agentTurn):
+
+    # def Minimax_heuristic(self, board, loc, agentTurn):
+    #     flag, res = self.is_final(board, agentTurn)
+    #     if flag:
+    #         return res
+    #     num_steps_available = 0
+    #     for d in self.directions:
+    #         i = loc[0] + d[0]
+    #         j = loc[1] + d[1]
+    #         if 0 <= i < len(board) and 0 <= j < len(board[0]) and board[i][j] == 0:  # then move is legal
+    #             num_steps_available += 1
+    #
+    #     if num_steps_available == 0:
+    #         return -1
+    #     else:
+    #         return 4 - num_steps_available
+
+    def New_heuristic(self, board, loc, agentTurn):
         flag, res = self.is_final(board, agentTurn)
         if flag:
             return res
+        return (self.CalcDistanceToRival( board,loc) + self.CalcWhiteNeighbors( board, loc) -
+                self.CalcMinDistanceToFrame( board, loc))
+
+
+
+
+    def CalcDistanceToRival(self,board, onesLocation):
+        rivalLocation = self.getLoc(board, 2)
+        xDist = abs(onesLocation[0] - rivalLocation[0])
+        yDist = abs(onesLocation[1] - rivalLocation[1])
+        return xDist + yDist
+
+    def CalcMinDistanceToFrame(self, board, onesLocation):
+        boardDimentions = len(board) - 1
+        xDist = min(boardDimentions - onesLocation[0], onesLocation[0])
+        yDist = min(boardDimentions - onesLocation[1], onesLocation[1])
+        return min( xDist, yDist)
+
+    def CalcWhiteNeighbors(self,board, onesLocation):
         num_steps_available = 0
         for d in self.directions:
-            i = loc[0] + d[0]
-            j = loc[1] + d[1]
+            i = onesLocation[0] + d[0]
+            j = onesLocation[1] + d[1]
             if 0 <= i < len(board) and 0 <= j < len(board[0]) and board[i][j] == 0:  # then move is legal
                 num_steps_available += 1
-
-        if num_steps_available == 0:
-            return -1
-        else:
-            return 4 - num_steps_available
+        return num_steps_available
 
     def Minimax(self, board, depth: int, agent: int, loc: tuple) -> (tuple, int, int):
         if depth == 0:
-            return loc, 0, self.Minimax_heuristic(board, self.getLoc(board, 1), agent)
+            return loc, 0, self.New_heuristic(board, self.getLoc(board, 1), agent)
 
         CurNumOfNodes = 0
 
@@ -112,8 +145,6 @@ class MinimaxPlayer:
             return CurMinLoc, CurNumOfNodes, CurMin
 
     def time_bound(self, numOfNodes: int, lastIterationTime, lastDepth) -> (float):
-        if numOfNodes == 0:
-            pass
         averageTimePerNode = lastIterationTime / numOfNodes
         nextTreeNumOfNodes = numOfNodes + pow(3, lastDepth + 1)
 
@@ -146,7 +177,7 @@ class MinimaxPlayer:
         list_of_neighbors_2 = self.succ(board, agent_2)
 
         if len(list_of_neighbors_1) == 0:
-            return True, -2
+            return True, MIN_UTILITY
 
         else:
             if len(list_of_neighbors_2) == 0:
@@ -155,14 +186,14 @@ class MinimaxPlayer:
                        for child in list_of_neighbors_1:
                            list_of_child_neighbors = self.succ(board, child)
                            if len(list_of_child_neighbors) != 0:
-                               return True, 5
+                               return True, MAX_UTILITY
                            else:
-                               return True, -2
+                               return True, MIN_UTILITY
 
                     else:
-                        return True, 5
+                        return True, MAX_UTILITY
 
                 else:
-                    return True, 5
+                    return True, MAX_UTILITY
             else:
                 return False, False
