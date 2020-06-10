@@ -173,7 +173,7 @@ if __name__ == '__main__':
 
     # player_1_type = args[1]
     # player_2_type = args[2]
-    player_1_type = "MinimaxPlayer"
+    player_1_type = "AlphaBetaPlayer"
     player_2_type = "SimplePlayer"
     module_1 = __import__(player_1_type)
     module_2 = __import__(player_2_type)
@@ -191,4 +191,4 @@ if __name__ == '__main__':
     print('Board', map_index)
     print('Players (besides LivePlayer) have', time_to_make_a_move, 'seconds to make a move')
     NotAnimatedGame(map[0], map[1], map[2], player_1=player_1, player_2=player_2,
-                     time_to_make_a_move=time_to_make_a_move, print_game_in_terminal=print_in_terminal)
+                     time_to_make_a_move=2, print_game_in_terminal=print_in_terminal)

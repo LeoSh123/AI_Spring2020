@@ -45,15 +45,15 @@ class Game:
         # we also switch players in here...
         if self.moves == 'regular':
             if not (0 <= cell_loc[0] < self.size[0] and 0 <= cell_loc[1] < self.size[1]):
-                # print('here 1')
+                print('here 1')
                 return False
             if not self.board[cell_loc] == 0:
-                # print('here 2 ==>', self.board[cell_loc])
+                print('here 2 ==>', self.board[cell_loc])
                 return False
             prev_player_location = self.board.get_player_location()
             directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
             if not any(self.tup_add(prev_player_location, move) == cell_loc for move in directions):
-                # print('moved from', prev_player_location, 'to', cell_loc)
+                print('moved from', prev_player_location, 'to', cell_loc)
                 return False
 
         self.board.update_loc(cell_loc)

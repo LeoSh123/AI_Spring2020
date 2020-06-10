@@ -147,17 +147,17 @@ trick_map = [size, blocks, starts]
 
 board = \
 [
-    [ 0,  0,  0],
-    [ 0,  0,  0],
-    [ 0,  0,  0],
-    [ 0,  0, -1],
-    [ 0,  0, -1],
-    [ 0,  0, -1],
+    [ 0,  0,  0, 0, 0, 0],
+    [ 0,  0,  0, 0, 0, 0],
+    [ 0,  0,  0, 0, 0, 0],
+    [ 0,  0, 0, 0, -1, -1],
+    [ 0,  0, -1, 0, 0, 0],
+    [ 0,  0, -1, -1, -1, -1],
  ]
 
-board = reflect(board, 'horizontal')
+# board = reflect(board, 'horizontal')
 size, blocks, _ = get_board_data(board)
-starts = [(4, 1), (4, 4)]
+starts = [(0, 0), (2, 5)]
 small_map = [size, blocks, starts]
 
 maps = [small_map, diag_map, tunnels_map, trick_map, ai_map]
