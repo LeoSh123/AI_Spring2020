@@ -57,21 +57,21 @@ class MinimaxPlayer:
         self.board[loc] = 2
 
 
-    # def Minimax_heuristic(self, board, loc, agentTurn):
-    #     flag, res = self.is_final(board, agentTurn)
-    #     if flag:
-    #         return res
-    #     num_steps_available = 0
-    #     for d in self.directions:
-    #         i = loc[0] + d[0]
-    #         j = loc[1] + d[1]
-    #         if 0 <= i < len(board) and 0 <= j < len(board[0]) and board[i][j] == 0:  # then move is legal
-    #             num_steps_available += 1
-    #
-    #     if num_steps_available == 0:
-    #         return -1
-    #     else:
-    #         return 4 - num_steps_available
+    def Minimax_heuristic(self, board, loc, agentTurn):
+        flag, res = self.is_final(board, agentTurn)
+        if flag:
+            return res
+        num_steps_available = 0
+        for d in self.directions:
+            i = loc[0] + d[0]
+            j = loc[1] + d[1]
+            if 0 <= i < len(board) and 0 <= j < len(board[0]) and board[i][j] == 0:  # then move is legal
+                num_steps_available += 1
+
+        if num_steps_available == 0:
+            return -1
+        else:
+            return 4 - num_steps_available
 
     def New_heuristic(self, board, loc, agentTurn):
         flag, res = self.is_final(board, agentTurn)
@@ -106,9 +106,13 @@ class MinimaxPlayer:
 
     def Minimax(self, board, depth: int, agent: int, loc: tuple) -> (tuple, int, int):
         if depth == 0:
-            return loc, 0, self.New_heuristic(board, self.getLoc(board, 1), agent)
+            return loc, 0, self.Minimax_heuristic(board, self.getLoc(board, 1), agent)
 
         CurNumOfNodes = 0
+
+        isFinal, Utility = self.is_final(board, agent)
+        if isFinal:
+            return loc, 1, Utility
 
         if agent == 1:
             agent_loc = self.getLoc(board, agent)

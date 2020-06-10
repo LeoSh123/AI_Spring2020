@@ -98,7 +98,7 @@ class AlphaBetaPlayer:
     def AlphaBeta(self, parentNode: Node, selfNode: Node, agent:int, loc:tuple , depth: int, Alpha:float, Beta:float) -> (tuple, int, int):
         if depth == 0:
             selfNode.isLeaf = True
-            return loc, 0, self.Minimax_heuristic(selfNode.board, self.getLoc(selfNode.board, 1), agent)
+            return loc, 0, self.New_heuristic(selfNode.board, self.getLoc(selfNode.board, 1), agent)
 
         isFinal, Utility = self.is_final(selfNode.board, agent)
         if isFinal:
