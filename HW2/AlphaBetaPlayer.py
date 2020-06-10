@@ -108,13 +108,13 @@ class AlphaBetaPlayer:
             CurMax = float('-inf')
             CurMaxLoc = None
             CurNumOfNodes = len(list_of_neighbors)
+            newAlpha = float(Alpha)
             for child in list_of_neighbors:
                 temp_board = selfNode.board.copy()
                 temp_board[agent_loc] = -1
                 temp_board[child] = 1
                 newNode = Node(temp_board, 2, parentNode)
                 self.graph.add_node(newNode)
-                newAlpha = float(Alpha)
                 res_loc, res_num_of_nodes, res_value, isAlive = self.AlphaBeta(selfNode, newNode, 2, child, depth-1, newAlpha, Beta)
                 if not isAlive:
                     self.graph.remove_node(newNode)
@@ -124,9 +124,12 @@ class AlphaBetaPlayer:
                     CurMaxLoc = child
                     CurNumOfNodes += res_num_of_nodes
                 newAlpha = max(newAlpha, CurMax)
-                if res_value > Beta:
+                if CurMax > Beta:
                     return loc, CurNumOfNodes, float('inf'), False
                 self.graph.add_edge(selfNode, newNode, weight = res_value)
+
+            if CurMaxLoc is None:
+                return loc, CurNumOfNodes, float('inf'), False
 
             return CurMaxLoc, CurNumOfNodes, CurMax, True
 
@@ -136,13 +139,13 @@ class AlphaBetaPlayer:
             CurMin = float('inf')
             CurMinLoc = None
             CurNumOfNodes = len(list_of_neighbors)
+            newBeta = float(Beta)
             for child in list_of_neighbors:
                 temp_board = selfNode.board.copy()
                 temp_board[agent_loc] = -1
                 temp_board[child] = 2
                 newNode = Node(temp_board, 1, parentNode)
                 self.graph.add_node(newNode)
-                newBeta = float(Beta)
                 res_loc, res_num_of_nodes, res_value, isAlive = self.AlphaBeta(selfNode, newNode, 1, child, depth-1, Alpha, newBeta)
                 if not isAlive:
                     self.graph.remove_node(newNode)
@@ -152,10 +155,12 @@ class AlphaBetaPlayer:
                     CurMinLoc = child
                     CurNumOfNodes += res_num_of_nodes
                 newBeta = min(newBeta, CurMin)
-                if res_value < Alpha:
+                if CurMin < Alpha:
                     return loc, CurNumOfNodes, float('-inf'), False
                 self.graph.add_edge(selfNode, newNode, weight=res_value)
 
+            if CurMinLoc is None:
+                return loc, CurNumOfNodes, float('-inf'), False
             return CurMinLoc, CurNumOfNodes, CurMin, True
 
 
