@@ -95,12 +95,14 @@ class AlphaBetaPlayer:
                 return False, False
 
 
-    def AlphaBeta(self, parentNode: Node, selfNode: Node, agent:int, loc:tuple , depth: int, Alpha:float, Beta:float) -> (tuple, int, int, bool):
+    def AlphaBeta(self, parentNode: Node, selfNode: Node, agent:int, loc:tuple , depth: int, Alpha:float, Beta:float) -> (tuple, int, int):
         if depth == 0:
             selfNode.isLeaf = True
-            return loc, 0, self.New_heuristic(selfNode.board, self.getLoc(selfNode.board, 1), agent), True
+            return loc, 0, self.Minimax_heuristic(selfNode.board, self.getLoc(selfNode.board, 1), agent)
 
-
+        isFinal, Utility = self.is_final(selfNode.board, agent)
+        if isFinal:
+            return loc, 1, Utility
 
         if agent == 1:
             agent_loc = self.getLoc(selfNode.board, agent)
@@ -109,29 +111,27 @@ class AlphaBetaPlayer:
             CurMaxLoc = None
             CurNumOfNodes = len(list_of_neighbors)
             newAlpha = float(Alpha)
+            newBeta = float(Beta)
             for child in list_of_neighbors:
                 temp_board = selfNode.board.copy()
                 temp_board[agent_loc] = -1
                 temp_board[child] = 1
                 newNode = Node(temp_board, 2, parentNode)
                 self.graph.add_node(newNode)
-                res_loc, res_num_of_nodes, res_value, isAlive = self.AlphaBeta(selfNode, newNode, 2, child, depth-1, newAlpha, Beta)
-                if not isAlive:
-                    self.graph.remove_node(newNode)
-                    continue
+                res_loc, res_num_of_nodes, res_value = self.AlphaBeta(selfNode, newNode, 2, child, depth-1, newAlpha, newBeta)
                 if CurMax < res_value:
                     CurMax = res_value
                     CurMaxLoc = child
                     CurNumOfNodes += res_num_of_nodes
                 newAlpha = max(newAlpha, CurMax)
                 if CurMax > Beta:
-                    return loc, CurNumOfNodes, float('inf'), False
+                    return loc, CurNumOfNodes, float('inf')
                 self.graph.add_edge(selfNode, newNode, weight = res_value)
 
             if CurMaxLoc is None:
-                return loc, CurNumOfNodes, float('inf'), False
+                return loc, CurNumOfNodes, float('inf')
 
-            return CurMaxLoc, CurNumOfNodes, CurMax, True
+            return CurMaxLoc, CurNumOfNodes, CurMax
 
         else:
             agent_loc = self.getLoc(selfNode.board, agent)
@@ -140,28 +140,27 @@ class AlphaBetaPlayer:
             CurMinLoc = None
             CurNumOfNodes = len(list_of_neighbors)
             newBeta = float(Beta)
+            newAlpha = float(Alpha)
             for child in list_of_neighbors:
                 temp_board = selfNode.board.copy()
                 temp_board[agent_loc] = -1
                 temp_board[child] = 2
                 newNode = Node(temp_board, 1, parentNode)
                 self.graph.add_node(newNode)
-                res_loc, res_num_of_nodes, res_value, isAlive = self.AlphaBeta(selfNode, newNode, 1, child, depth-1, Alpha, newBeta)
-                if not isAlive:
-                    self.graph.remove_node(newNode)
-                    continue
+                res_loc, res_num_of_nodes, res_value= self.AlphaBeta(selfNode, newNode, 1, child, depth-1, newAlpha, newBeta)
                 if CurMin > res_value:
                     CurMin = res_value
                     CurMinLoc = child
                     CurNumOfNodes += res_num_of_nodes
                 newBeta = min(newBeta, CurMin)
                 if CurMin < Alpha:
-                    return loc, CurNumOfNodes, float('-inf'), False
+                    return loc, CurNumOfNodes, float('-inf')
                 self.graph.add_edge(selfNode, newNode, weight=res_value)
 
             if CurMinLoc is None:
-                return loc, CurNumOfNodes, float('-inf'), False
-            return CurMinLoc, CurNumOfNodes, CurMin, True
+                return loc, CurNumOfNodes, float('-inf')
+
+            return CurMinLoc, CurNumOfNodes, CurMin
 
 
 
@@ -208,12 +207,12 @@ class AlphaBetaPlayer:
         ID_start_time = T.time()
         depth = 1
 
-        EmptyNode = Node(self.board, 1,None)
+        EmptyNode = Node(self.board, 1, None)
         rootNode = Node(self.board, 1, None)
         self.graph.add_node(rootNode)
         Alpha = float('-inf')
         Beta = float('inf')
-        move, numOfNodes, value, isAlive = self.AlphaBeta(EmptyNode, rootNode, 1, self.loc, depth, Alpha, Beta)
+        move, numOfNodes, value = self.AlphaBeta(EmptyNode, rootNode, 1, self.loc, depth, Alpha, Beta)
         x = move[0] - self.loc[0]
         y = move[1] - self.loc[1]
         last_iteration_time = T.time() - ID_start_time
@@ -227,7 +226,9 @@ class AlphaBetaPlayer:
             self.graph.add_node(rootNode)
             Alpha = float('-inf')
             Beta = float('inf')
-            move, numOfNodes, value, isAlive = self.AlphaBeta(EmptyNode, rootNode, 1, self.loc, depth, Alpha, Beta)
+            if depth == 8:
+                print(depth)
+            move, numOfNodes, value = self.AlphaBeta(EmptyNode, rootNode, 1, self.loc, depth, Alpha, Beta)
             x = move[0] - self.loc[0]
             y = move[1] - self.loc[1]
             last_iteration_time = T.time() - iteration_start_time
@@ -236,8 +237,34 @@ class AlphaBetaPlayer:
             next_iteration_time = self.time_bound(numOfNodes, last_iteration_time, depth)
             time_until_now = T.time() - ID_start_time
 
+        if move == self.loc and value != float('inf'):
+            list_of_neighbors = self.succ(self.board, self.loc)
+            move = list_of_neighbors[0]
+            x = move[0] - self.loc[0]
+            y = move[1] - self.loc[1]
+
+        print(move, self.loc, numOfNodes, value, depth, end="***\n")
+
         self.board[self.loc] = -1
         self.board[move] = 1
         self.loc = move
 
+
+
         return x, y
+
+    def Minimax_heuristic(self, board, loc, agentTurn):
+        flag, res = self.is_final(board, agentTurn)
+        if flag:
+            return res
+        num_steps_available = 0
+        for d in self.directions:
+            i = loc[0] + d[0]
+            j = loc[1] + d[1]
+            if 0 <= i < len(board) and 0 <= j < len(board[0]) and board[i][j] == 0:  # then move is legal
+                num_steps_available += 1
+
+        if num_steps_available == 0:
+            return -1
+        else:
+            return 4 - num_steps_available
