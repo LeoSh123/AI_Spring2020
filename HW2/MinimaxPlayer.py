@@ -1,6 +1,7 @@
 import time as T
-MAX_UTILITY = 15
-MIN_UTILITY = -15
+import math
+MAX_UTILITY = 500
+MIN_UTILITY = -500
 FIRST_PLAYER = 1
 SECOND_PLAYER = 2
 
@@ -82,11 +83,13 @@ class MinimaxPlayer:
             return 4 - num_steps_available
 
     def New_heuristic(self, board, loc, agentTurn):
-        flag, res = self.is_final(board, agentTurn)
-        if flag:
-            return res
-        return (self.CalcDistanceToRival( board,loc) + self.CalcWhiteNeighbors( board, loc) -
-                self.CalcMinDistanceToFrame( board, loc))
+            flag, res = self.is_final(board, agentTurn)
+            if flag:
+                return res
+            board_factor = min(len(board), len(board[0]))
+            board_factor = math.ceil(board_factor / 3)
+            return (3 * self.CalcDistanceToRival(board, loc) + board_factor * self.CalcWhiteNeighbors(board, loc) -
+                    self.CalcMinDistanceToFrame(board, loc))
 
 
 

@@ -1,7 +1,8 @@
 import time as T
 import networkx as nx
-MAX_UTILITY = 25
-MIN_UTILITY = -25
+import math
+MAX_UTILITY = 500
+MIN_UTILITY = -500
 
 class Node:
     def __init__(self, board, player, parent):
@@ -205,11 +206,13 @@ class OrderedAlphaBetaPlayer:
             return CurMinLoc, CurNumOfNodes, CurMin
 
     def New_heuristic(self, board, loc, agentTurn):
-        flag, res = self.is_final(board, agentTurn)
-        if flag:
-            return res
-        return (self.CalcDistanceToRival( board,loc) + 2*self.CalcWhiteNeighbors( board, loc) -
-                self.CalcMinDistanceToFrame( board, loc))
+            flag, res = self.is_final(board, agentTurn)
+            if flag:
+                return res
+            board_factor = min(len(board), len(board[0]))
+            board_factor = math.ceil(board_factor / 3)
+            return (3 * self.CalcDistanceToRival(board, loc) + board_factor * self.CalcWhiteNeighbors(board, loc) -
+                    self.CalcMinDistanceToFrame(board, loc))
 
 
     def CalcDistanceToRival(self,board, onesLocation):
