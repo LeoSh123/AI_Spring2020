@@ -44,6 +44,12 @@ class MinimaxPlayer:
             next_iteration_time = self.time_bound(numOfNodes, last_iteration_time, depth)
             time_until_now = T.time() - ID_start_time
 
+        if move == self.loc:
+            list_of_neighbors = self.succ(self.board, self.loc)
+            move = list_of_neighbors[0]
+            x = move[0] - self.loc[0]
+            y = move[1] - self.loc[1]
+
         self.board[self.loc] = -1
         self.board[move] = 1
         self.loc = move

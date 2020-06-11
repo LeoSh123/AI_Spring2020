@@ -270,14 +270,10 @@ class OrderedAlphaBetaPlayer:
             self.graph.add_node(rootNode)
             Alpha = float('-inf')
             Beta = float('inf')
-            if depth == 8:
-                print(depth)
             move, numOfNodes, value = self.OrderedAlphaBeta(EmptyNode, rootNode, 1, self.loc, depth, Alpha, Beta)
             x = move[0] - self.loc[0]
             y = move[1] - self.loc[1]
             last_iteration_time = T.time() - iteration_start_time
-            if numOfNodes == 0:
-                pass
             next_iteration_time = self.time_bound(numOfNodes, last_iteration_time, depth)
             time_until_now = T.time() - ID_start_time
             EmptyNode.step = move
