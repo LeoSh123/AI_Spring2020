@@ -57,7 +57,8 @@ class MinimaxPlayer:
         self.board[move] = FIRST_PLAYER
         self.loc = move
 
-        return x, y
+        # return x, y
+        return depth
 
     def set_rival_move(self, loc):
         if not self.make_move_flag:
@@ -119,7 +120,7 @@ class MinimaxPlayer:
 
     def Minimax(self, board, depth: int, agent: int, loc: tuple) -> (tuple, int, int):
         if depth == 0:
-            return loc, 0, self.Minimax_heuristic(board, self.getLoc(board, FIRST_PLAYER), agent)
+            return loc, 0, self.New_heuristic(board, self.getLoc(board, FIRST_PLAYER), agent)
 
         CurNumOfNodes = 0
 
