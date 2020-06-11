@@ -1,6 +1,8 @@
 import time as T
 MAX_UTILITY = 15
 MIN_UTILITY = -15
+FIRST_PLAYER = 1
+SECOND_PLAYER = 2
 
 class MinimaxPlayer:
     def __init__(self):
@@ -16,7 +18,7 @@ class MinimaxPlayer:
         self.board = board
         for i, row in enumerate(board):
             for j, val in enumerate(row):
-                if val == 1:
+                if val == FIRST_PLAYER:
                     self.loc = (i, j)
                     break
 
@@ -27,7 +29,7 @@ class MinimaxPlayer:
         ID_start_time = T.time()
         depth = 1
 
-        move, numOfNodes, value = self.Minimax(self.board, depth, 1, self.loc)
+        move, numOfNodes, value = self.Minimax(self.board, depth, FIRST_PLAYER, self.loc)
         x = move[0] - self.loc[0]
         y = move[1] - self.loc[1]
         last_iteration_time = T.time() - ID_start_time
@@ -37,7 +39,7 @@ class MinimaxPlayer:
         while time_until_now + next_iteration_time < time:
             depth += 1
             iteration_start_time = T.time()
-            move, numOfNodes, value = self.Minimax(self.board, depth, 1, self.loc)
+            move, numOfNodes, value = self.Minimax(self.board, depth, FIRST_PLAYER, self.loc)
             x = move[0] - self.loc[0]
             y = move[1] - self.loc[1]
             last_iteration_time = T.time() - iteration_start_time
@@ -51,7 +53,7 @@ class MinimaxPlayer:
             y = move[1] - self.loc[1]
 
         self.board[self.loc] = -1
-        self.board[move] = 1
+        self.board[move] = FIRST_PLAYER
         self.loc = move
 
         return x, y
@@ -59,8 +61,8 @@ class MinimaxPlayer:
     def set_rival_move(self, loc):
         if not self.make_move_flag:
             self.set_rival_move_flag = True
-        self.board[self.getLoc(self.board, 2)] = -1
-        self.board[loc] = 2
+        self.board[self.getLoc(self.board, SECOND_PLAYER)] = -1
+        self.board[loc] = SECOND_PLAYER
 
 
     def Minimax_heuristic(self, board, loc, agentTurn):
@@ -90,15 +92,17 @@ class MinimaxPlayer:
 
 
     def CalcDistanceToRival(self,board, onesLocation):
-        rivalLocation = self.getLoc(board, 2)
+        rivalLocation = self.getLoc(board, SECOND_PLAYER)
         xDist = abs(onesLocation[0] - rivalLocation[0])
         yDist = abs(onesLocation[1] - rivalLocation[1])
         return xDist + yDist
 
     def CalcMinDistanceToFrame(self, board, onesLocation):
-        boardDimentions = len(board) - 1
-        xDist = min(boardDimentions - onesLocation[0], onesLocation[0])
-        yDist = min(boardDimentions - onesLocation[1], onesLocation[1])
+        rowsDimentions = len(board) - 1
+        colsDimentions = len(board[0]) - 1
+
+        xDist = min(rowsDimentions - onesLocation[0], onesLocation[0])
+        yDist = min(colsDimentions - onesLocation[1], onesLocation[1])
         return min( xDist, yDist)
 
     def CalcWhiteNeighbors(self,board, onesLocation):
@@ -112,7 +116,7 @@ class MinimaxPlayer:
 
     def Minimax(self, board, depth: int, agent: int, loc: tuple) -> (tuple, int, int):
         if depth == 0:
-            return loc, 0, self.Minimax_heuristic(board, self.getLoc(board, 1), agent)
+            return loc, 0, self.Minimax_heuristic(board, self.getLoc(board, FIRST_PLAYER), agent)
 
         CurNumOfNodes = 0
 
@@ -120,7 +124,7 @@ class MinimaxPlayer:
         if isFinal:
             return loc, 1, Utility
 
-        if agent == 1:
+        if agent == FIRST_PLAYER:
             agent_loc = self.getLoc(board, agent)
             list_of_neighbors = self.succ(board, agent_loc)
             CurMax = float('-inf')
@@ -129,8 +133,8 @@ class MinimaxPlayer:
             for child in list_of_neighbors:
                 temp_board = board.copy()
                 temp_board[agent_loc] = -1
-                temp_board[child] = 1
-                res_loc, res_num_of_nodes, res_value = self.Minimax(temp_board, depth - 1, 2, child)
+                temp_board[child] = FIRST_PLAYER
+                res_loc, res_num_of_nodes, res_value = self.Minimax(temp_board, depth - 1, SECOND_PLAYER, child)
                 if CurMax < res_value:
                     CurMax = res_value
                     CurMaxLoc = child
@@ -146,8 +150,8 @@ class MinimaxPlayer:
             for child in list_of_neighbors:
                 temp_board = board.copy()
                 temp_board[agent_loc] = -1
-                temp_board[child] = 2
-                res_loc, res_num_of_nodes, res_value = self.Minimax(temp_board, depth - 1, 1, child)
+                temp_board[child] = SECOND_PLAYER
+                res_loc, res_num_of_nodes, res_value = self.Minimax(temp_board, depth - 1, FIRST_PLAYER, child)
                 if CurMin > res_value:
                     CurMin = res_value
                     CurMinLoc = child
@@ -180,8 +184,8 @@ class MinimaxPlayer:
                     return i, j
 
     def is_final(self, board, agentTurn):
-        agent_1 = self.getLoc(board, 1)
-        agent_2 = self.getLoc(board, 2)
+        agent_1 = self.getLoc(board, FIRST_PLAYER)
+        agent_2 = self.getLoc(board, SECOND_PLAYER)
 
         list_of_neighbors_1 = self.succ(board, agent_1)
         list_of_neighbors_2 = self.succ(board, agent_2)
@@ -191,7 +195,7 @@ class MinimaxPlayer:
 
         else:
             if len(list_of_neighbors_2) == 0:
-                if agentTurn == 1:
+                if agentTurn == FIRST_PLAYER:
                     if not self.we_played_first:
                        for child in list_of_neighbors_1:
                            list_of_child_neighbors = self.succ(board, child)

@@ -204,20 +204,12 @@ class OrderedAlphaBetaPlayer:
 
             return CurMinLoc, CurNumOfNodes, CurMin
 
-
-
-
-
-
-
     def New_heuristic(self, board, loc, agentTurn):
         flag, res = self.is_final(board, agentTurn)
         if flag:
             return res
         return (self.CalcDistanceToRival( board,loc) + 2*self.CalcWhiteNeighbors( board, loc) -
                 self.CalcMinDistanceToFrame( board, loc))
-
-
 
 
     def CalcDistanceToRival(self,board, onesLocation):
@@ -227,9 +219,11 @@ class OrderedAlphaBetaPlayer:
         return xDist + yDist
 
     def CalcMinDistanceToFrame(self, board, onesLocation):
-        boardDimentions = len(board) - 1
-        xDist = min(boardDimentions - onesLocation[0], onesLocation[0])
-        yDist = min(boardDimentions - onesLocation[1], onesLocation[1])
+        rowsDimentions = len(board) - 1
+        colsDimentions = len(board[0]) - 1
+
+        xDist = min(rowsDimentions - onesLocation[0], onesLocation[0])
+        yDist = min(colsDimentions - onesLocation[1], onesLocation[1])
         return min( xDist, yDist)
 
     def CalcWhiteNeighbors(self,board, onesLocation):

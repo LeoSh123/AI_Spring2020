@@ -2,6 +2,8 @@ import time as T
 import networkx as nx
 MAX_UTILITY = 15
 MIN_UTILITY = -15
+FIRST_PLAYER = 1
+SECOND_PLAYER = 2
 
 class Node:
     def __init__(self, board, player, parent):
@@ -26,7 +28,7 @@ class AlphaBetaPlayer:
         self.board = board
         for i, row in enumerate(board):
             for j, val in enumerate(row):
-                if val == 1:
+                if val == FIRST_PLAYER:
                     self.loc = (i, j)
                     break
 
@@ -34,8 +36,8 @@ class AlphaBetaPlayer:
     def set_rival_move(self, loc):
         if not self.make_move_flag:
             self.set_rival_move_flag = True
-        self.board[self.getLoc(self.board, 2)] = -1
-        self.board[loc] = 2
+        self.board[self.getLoc(self.board, SECOND_PLAYER)] = -1
+        self.board[loc] = SECOND_PLAYER
 
 
     def time_bound(self, numOfNodes: int, lastIterationTime, lastDepth) -> (float):
@@ -66,8 +68,8 @@ class AlphaBetaPlayer:
 
 
     def is_final(self, board, agentTurn):
-        agent_1 = self.getLoc(board, 1)
-        agent_2 = self.getLoc(board, 2)
+        agent_1 = self.getLoc(board, FIRST_PLAYER)
+        agent_2 = self.getLoc(board, SECOND_PLAYER)
 
         list_of_neighbors_1 = self.succ(board, agent_1)
         list_of_neighbors_2 = self.succ(board, agent_2)
@@ -77,7 +79,7 @@ class AlphaBetaPlayer:
 
         else:
             if len(list_of_neighbors_2) == 0:
-                if agentTurn == 1:
+                if agentTurn == FIRST_PLAYER:
                     if not self.we_played_first:
                        for child in list_of_neighbors_1:
                            list_of_child_neighbors = self.succ(board, child)
@@ -98,13 +100,13 @@ class AlphaBetaPlayer:
     def AlphaBeta(self, parentNode: Node, selfNode: Node, agent:int, loc:tuple , depth: int, Alpha:float, Beta:float) -> (tuple, int, int):
         if depth == 0:
             selfNode.isLeaf = True
-            return loc, 0, self.New_heuristic(selfNode.board, self.getLoc(selfNode.board, 1), agent)
+            return loc, 0, self.New_heuristic(selfNode.board, self.getLoc(selfNode.board, FIRST_PLAYER), agent)
 
         isFinal, Utility = self.is_final(selfNode.board, agent)
         if isFinal:
             return loc, 1, Utility
 
-        if agent == 1:
+        if agent == FIRST_PLAYER:
             agent_loc = self.getLoc(selfNode.board, agent)
             list_of_neighbors = self.succ(selfNode.board, agent_loc)
             CurMax = float('-inf')
@@ -115,10 +117,10 @@ class AlphaBetaPlayer:
             for child in list_of_neighbors:
                 temp_board = selfNode.board.copy()
                 temp_board[agent_loc] = -1
-                temp_board[child] = 1
-                newNode = Node(temp_board, 2, selfNode)
+                temp_board[child] = FIRST_PLAYER
+                newNode = Node(temp_board, SECOND_PLAYER, selfNode)
                 self.graph.add_node(newNode)
-                res_loc, res_num_of_nodes, res_value = self.AlphaBeta(selfNode, newNode, 2, child, depth-1, newAlpha, newBeta)
+                res_loc, res_num_of_nodes, res_value = self.AlphaBeta(selfNode, newNode, SECOND_PLAYER, child, depth-1, newAlpha, newBeta)
                 if CurMax < res_value:
                     CurMax = res_value
                     CurMaxLoc = child
@@ -144,10 +146,10 @@ class AlphaBetaPlayer:
             for child in list_of_neighbors:
                 temp_board = selfNode.board.copy()
                 temp_board[agent_loc] = -1
-                temp_board[child] = 2
-                newNode = Node(temp_board, 1, selfNode)
+                temp_board[child] = SECOND_PLAYER
+                newNode = Node(temp_board, FIRST_PLAYER, selfNode)
                 self.graph.add_node(newNode)
-                res_loc, res_num_of_nodes, res_value= self.AlphaBeta(selfNode, newNode, 1, child, depth-1, newAlpha, newBeta)
+                res_loc, res_num_of_nodes, res_value= self.AlphaBeta(selfNode, newNode, FIRST_PLAYER, child, depth-1, newAlpha, newBeta)
                 if CurMin > res_value:
                     CurMin = res_value
                     CurMinLoc = child
@@ -179,15 +181,17 @@ class AlphaBetaPlayer:
 
 
     def CalcDistanceToRival(self,board, onesLocation):
-        rivalLocation = self.getLoc(board, 2)
+        rivalLocation = self.getLoc(board, SECOND_PLAYER)
         xDist = abs(onesLocation[0] - rivalLocation[0])
         yDist = abs(onesLocation[1] - rivalLocation[1])
         return xDist + yDist
 
     def CalcMinDistanceToFrame(self, board, onesLocation):
-        boardDimentions = len(board) - 1
-        xDist = min(boardDimentions - onesLocation[0], onesLocation[0])
-        yDist = min(boardDimentions - onesLocation[1], onesLocation[1])
+        rowsDimentions = len(board) - 1
+        colsDimentions = len(board[0]) - 1
+
+        xDist = min(rowsDimentions - onesLocation[0], onesLocation[0])
+        yDist = min(colsDimentions - onesLocation[1], onesLocation[1])
         return min( xDist, yDist)
 
     def CalcWhiteNeighbors(self,board, onesLocation):
@@ -207,12 +211,12 @@ class AlphaBetaPlayer:
         ID_start_time = T.time()
         depth = 1
 
-        EmptyNode = Node(self.board, 1, None)
-        rootNode = Node(self.board, 1, None)
+        EmptyNode = Node(self.board, FIRST_PLAYER, None)
+        rootNode = Node(self.board, FIRST_PLAYER, None)
         self.graph.add_node(rootNode)
         Alpha = float('-inf')
         Beta = float('inf')
-        move, numOfNodes, value = self.AlphaBeta(EmptyNode, rootNode, 1, self.loc, depth, Alpha, Beta)
+        move, numOfNodes, value = self.AlphaBeta(EmptyNode, rootNode, FIRST_PLAYER, self.loc, depth, Alpha, Beta)
         x = move[0] - self.loc[0]
         y = move[1] - self.loc[1]
         last_iteration_time = T.time() - ID_start_time
@@ -226,7 +230,7 @@ class AlphaBetaPlayer:
             self.graph.add_node(rootNode)
             Alpha = float('-inf')
             Beta = float('inf')
-            move, numOfNodes, value = self.AlphaBeta(EmptyNode, rootNode, 1, self.loc, depth, Alpha, Beta)
+            move, numOfNodes, value = self.AlphaBeta(EmptyNode, rootNode, FIRST_PLAYER, self.loc, depth, Alpha, Beta)
             x = move[0] - self.loc[0]
             y = move[1] - self.loc[1]
             last_iteration_time = T.time() - iteration_start_time
@@ -242,7 +246,7 @@ class AlphaBetaPlayer:
         print(move, self.loc, numOfNodes, value, depth, end="***\n")
 
         self.board[self.loc] = -1
-        self.board[move] = 1
+        self.board[move] = FIRST_PLAYER
         self.loc = move
 
 
