@@ -57,8 +57,8 @@ class MinimaxPlayer:
         self.board[move] = FIRST_PLAYER
         self.loc = move
 
-        # return x, y
-        return depth
+        return x, y
+
 
     def set_rival_move(self, loc):
         if not self.make_move_flag:

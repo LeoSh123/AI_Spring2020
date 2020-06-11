@@ -246,8 +246,8 @@ class AlphaBetaPlayer:
 
 
 
-        # return x, y
-        return depth
+        return x, y
+
 
     def Minimax_heuristic(self, board, loc, agentTurn):
         flag, res = self.is_final(board, agentTurn)
