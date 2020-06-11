@@ -1,7 +1,7 @@
 import time as T
 import networkx as nx
-MAX_UTILITY = 15
-MIN_UTILITY = -15
+MAX_UTILITY = 25
+MIN_UTILITY = -25
 
 class Node:
     def __init__(self, board, player, parent):
@@ -9,8 +9,9 @@ class Node:
         self.player = player
         self.parent = parent
         self.isLeaf = False
+        self.step = None
 
-class AlphaBetaPlayer:
+class OrderedAlphaBetaPlayer:
     def __init__(self):
         self.loc = None
         self.board = None
@@ -95,7 +96,7 @@ class AlphaBetaPlayer:
                 return False, False
 
 
-    def AlphaBeta(self, parentNode: Node, selfNode: Node, agent:int, loc:tuple , depth: int, Alpha:float, Beta:float) -> (tuple, int, int):
+    def OrderedAlphaBeta(self, parentNode: Node, selfNode: Node, agent:int, loc:tuple , depth: int, Alpha:float, Beta:float) -> (tuple, int, int):
         if depth == 0:
             selfNode.isLeaf = True
             return loc, 0, self.New_heuristic(selfNode.board, self.getLoc(selfNode.board, 1), agent)
@@ -112,28 +113,69 @@ class AlphaBetaPlayer:
             CurNumOfNodes = len(list_of_neighbors)
             newAlpha = float(Alpha)
             newBeta = float(Beta)
-            for child in list_of_neighbors:
+
+            if parentNode.player == 3:  # a sign for root node with additional info from earlier runs
                 temp_board = selfNode.board.copy()
                 temp_board[agent_loc] = -1
-                temp_board[child] = 1
+                temp_board[parentNode.step] = 1
                 newNode = Node(temp_board, 2, selfNode)
                 self.graph.add_node(newNode)
-                res_loc, res_num_of_nodes, res_value = self.AlphaBeta(selfNode, newNode, 2, child, depth-1, newAlpha, newBeta)
+                res_loc, res_num_of_nodes, res_value = self.OrderedAlphaBeta(selfNode, newNode, 2, parentNode.step, depth - 1,
+                                                                             newAlpha, newBeta)
                 if CurMax < res_value:
                     CurMax = res_value
-                    CurMaxLoc = child
+                    CurMaxLoc = parentNode.step
                     CurNumOfNodes += res_num_of_nodes
                 newAlpha = max(newAlpha, CurMax)
                 if CurMax > Beta:
                     return loc, CurNumOfNodes, float('inf')
-                self.graph.add_edge(selfNode, newNode, weight = res_value)
+                self.graph.add_edge(selfNode, newNode, weight=res_value)
 
-            if CurMaxLoc is None:
-                return loc, CurNumOfNodes, float('inf')
+                list_of_neighbors.remove(parentNode.step)
+                for child in list_of_neighbors:
+                    temp_board = selfNode.board.copy()
+                    temp_board[agent_loc] = -1
+                    temp_board[child] = 1
+                    newNode = Node(temp_board, 2, selfNode)
+                    self.graph.add_node(newNode)
+                    res_loc, res_num_of_nodes, res_value = self.OrderedAlphaBeta(selfNode, newNode, 2, child, depth-1, newAlpha, newBeta)
+                    if CurMax < res_value:
+                        CurMax = res_value
+                        CurMaxLoc = child
+                        CurNumOfNodes += res_num_of_nodes
+                    newAlpha = max(newAlpha, CurMax)
+                    if CurMax > Beta:
+                        return loc, CurNumOfNodes, float('inf')
+                    self.graph.add_edge(selfNode, newNode, weight = res_value)
 
-            return CurMaxLoc, CurNumOfNodes, CurMax
+                if CurMaxLoc is None:
+                    return loc, CurNumOfNodes, float('inf')
 
-        else:
+                return CurMaxLoc, CurNumOfNodes, CurMax
+
+            else:  # not a root node
+                for child in list_of_neighbors:
+                    temp_board = selfNode.board.copy()
+                    temp_board[agent_loc] = -1
+                    temp_board[child] = 1
+                    newNode = Node(temp_board, 2, selfNode)
+                    self.graph.add_node(newNode)
+                    res_loc, res_num_of_nodes, res_value = self.OrderedAlphaBeta(selfNode, newNode, 2, child, depth-1, newAlpha, newBeta)
+                    if CurMax < res_value:
+                        CurMax = res_value
+                        CurMaxLoc = child
+                        CurNumOfNodes += res_num_of_nodes
+                    newAlpha = max(newAlpha, CurMax)
+                    if CurMax > Beta:
+                        return loc, CurNumOfNodes, float('inf')
+                    self.graph.add_edge(selfNode, newNode, weight = res_value)
+
+                if CurMaxLoc is None:
+                    return loc, CurNumOfNodes, float('inf')
+
+                return CurMaxLoc, CurNumOfNodes, CurMax
+
+        else:  # player number 2
             agent_loc = self.getLoc(selfNode.board, agent)
             list_of_neighbors = self.succ(selfNode.board, agent_loc)
             CurMin = float('inf')
@@ -147,7 +189,7 @@ class AlphaBetaPlayer:
                 temp_board[child] = 2
                 newNode = Node(temp_board, 1, selfNode)
                 self.graph.add_node(newNode)
-                res_loc, res_num_of_nodes, res_value= self.AlphaBeta(selfNode, newNode, 1, child, depth-1, newAlpha, newBeta)
+                res_loc, res_num_of_nodes, res_value= self.OrderedAlphaBeta(selfNode, newNode, 1, child, depth-1, newAlpha, newBeta)
                 if CurMin > res_value:
                     CurMin = res_value
                     CurMinLoc = child
@@ -172,7 +214,7 @@ class AlphaBetaPlayer:
         flag, res = self.is_final(board, agentTurn)
         if flag:
             return res
-        return (self.CalcDistanceToRival( board,loc) + self.CalcWhiteNeighbors( board, loc) -
+        return (self.CalcDistanceToRival( board,loc) + 2*self.CalcWhiteNeighbors( board, loc) -
                 self.CalcMinDistanceToFrame( board, loc))
 
 
@@ -212,12 +254,14 @@ class AlphaBetaPlayer:
         self.graph.add_node(rootNode)
         Alpha = float('-inf')
         Beta = float('inf')
-        move, numOfNodes, value = self.AlphaBeta(EmptyNode, rootNode, 1, self.loc, depth, Alpha, Beta)
+        move, numOfNodes, value = self.OrderedAlphaBeta(EmptyNode, rootNode, 1, self.loc, depth, Alpha, Beta)
         x = move[0] - self.loc[0]
         y = move[1] - self.loc[1]
         last_iteration_time = T.time() - ID_start_time
         next_iteration_time = self.time_bound(numOfNodes, last_iteration_time, depth)
         time_until_now = T.time() - ID_start_time
+        EmptyNode.step = move
+        EmptyNode.player = 3
 
         while time_until_now + next_iteration_time < time:
             depth += 1
@@ -228,7 +272,7 @@ class AlphaBetaPlayer:
             Beta = float('inf')
             if depth == 8:
                 print(depth)
-            move, numOfNodes, value = self.AlphaBeta(EmptyNode, rootNode, 1, self.loc, depth, Alpha, Beta)
+            move, numOfNodes, value = self.OrderedAlphaBeta(EmptyNode, rootNode, 1, self.loc, depth, Alpha, Beta)
             x = move[0] - self.loc[0]
             y = move[1] - self.loc[1]
             last_iteration_time = T.time() - iteration_start_time
@@ -236,6 +280,7 @@ class AlphaBetaPlayer:
                 pass
             next_iteration_time = self.time_bound(numOfNodes, last_iteration_time, depth)
             time_until_now = T.time() - ID_start_time
+            EmptyNode.step = move
 
         if move == self.loc and value != float('inf'):
             list_of_neighbors = self.succ(self.board, self.loc)
