@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib as plt
 import math
+import networkx as nx
 
 train_df = pd.read_csv("train.csv")
 
@@ -16,7 +17,7 @@ def getMinInCol(numOfCol)->(float):
     minVal = min(val for val in train_df.iloc[:,numOfCol])
     return minVal
 
-def getEntropy(indexArray: np.array)->(float):
+def getEntropy(indexArray: np.array, dataFrame:train_df)->(float):
     # average = (getMaxInCol(numOfFeature) + getMinInCol(numOfFeature)) / 2
     # array = np.array(train_df.iloc[:,numOfFeature])
     # lowerIndexArray = np.argwhere[array < average]
@@ -33,7 +34,7 @@ def getEntropy(indexArray: np.array)->(float):
     # listOfAboveIndex = train_df.index - listOfBelowIndex
     positiveSum = 0
     for index in indexArray:
-        if train_df.iloc[index , 0] == 1:
+        if dataFrame.iloc[index , 0] == 1:
             positiveSum += 1
     negativeSum = len(indexArray) - positiveSum
     probZero = negativeSum / len(indexArray)
@@ -46,6 +47,6 @@ def getEntropy(indexArray: np.array)->(float):
 
 array = np.array(train_df.index)
 print(array)
-print("entropy is", getEntropy(array))
+print("entropy is", getEntropy(array, train_df))
 
 
