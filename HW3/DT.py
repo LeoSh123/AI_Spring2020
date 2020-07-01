@@ -1,12 +1,13 @@
 import pandas as pd
 import numpy as np
 import matplotlib as plt
+from matplotlib import pyplot as pylt
 import math
 import networkx as nx
 
 train_df = pd.read_csv("train.csv")
 test_df = pd.read_csv("test.csv")
-dataTop = train_df.head()
+
 
 class Tree:
     def __init__(self):
@@ -26,20 +27,7 @@ def getMinInCol(feature:str ,dataFrame:pd.DataFrame)->(float):
     return minVal
 
 def getEntropy(dataFrame:pd.DataFrame)->(float):
-    # average = (getMaxInCol(numOfFeature) + getMinInCol(numOfFeature)) / 2
-    # array = np.array(train_df.iloc[:,numOfFeature])
-    # lowerIndexArray = np.argwhere[array < average]
-    # higherIndexArray = np.argwhere[array >= average]
-    # probLower = len(lowerIndexArray) / len(array)
-    # probHigher = len(higherIndexArray) / len(array)
-    #
-    # listOfBelowIndex = list()
-    # index = 0
-    # for val in train_df.iloc[:,numOfFeature]:
-    #     if val < average:
-    #         listOfBelowIndex.append(index)
-    #     index +=1
-    # listOfAboveIndex = train_df.index - listOfBelowIndex
+
     positiveSum = 0
 
     for val in dataFrame['diagnosis']:
@@ -151,12 +139,15 @@ def SelectFeature(dataFrame: pd.DataFrame)->(str):
 
 
 
-def TDIDT(dataFrame: pd.DataFrame, classification:bool)-> Tree:
+def TDIDT(dataFrame: pd.DataFrame, classification:bool, x:int)-> Tree:
     newTree = Tree()
     if len(dataFrame['diagnosis']) <= 0:
         newTree.Classification = classification
         return newTree
     classification, isZero = MajorityClass(dataFrame)
+    if len(dataFrame['diagnosis']) <= x:
+        newTree.Classification = classification
+        return newTree
     featureSet = {feature for feature in dataFrame}
     if isZero is True or len(featureSet) <= 1:
         newTree.Classification = classification
@@ -178,8 +169,8 @@ def TDIDT(dataFrame: pd.DataFrame, classification:bool)-> Tree:
     newDataFrameAbove.drop(belowIndex, inplace=True)
     newDataFrameBelow.drop(aboveIndex, inplace=True)
 
-    newTree.AboveTree = TDIDT(newDataFrameAbove, classification)
-    newTree.BelowTree = TDIDT(newDataFrameBelow, classification)
+    newTree.AboveTree = TDIDT(newDataFrameAbove, classification, x)
+    newTree.BelowTree = TDIDT(newDataFrameBelow, classification, x)
 
     return newTree
 
@@ -208,11 +199,14 @@ def DTClassify(dataFrame:pd.DataFrame, tree:Tree , index)->bool:
 
 
 
-tree = TDIDT(train_df,True)
+
 
 indices = list(range(0, len(test_df['diagnosis'])))
 
 realClassList = [val for val in test_df['diagnosis']]
+
+
+tree = TDIDT(train_df,True, 0)
 accurateCount = 0
 inAccurateCount = 0
 
@@ -234,7 +228,9 @@ for i in indices:
         inAccurateCount += 1
 
 percentage = (accurateCount/(accurateCount + inAccurateCount))*100
+# percantageList.append(percentage)
 
-print("Accurate were:", accurateCount)
-print("InAccurate were:", inAccurateCount)
-print("The percentage is:", percentage,"%")
+# print("Accurate were:", accurateCount)
+# print("InAccurate were:", inAccurateCount)
+# print("The percentage is:", percentage,"%")
+print(percentage)
