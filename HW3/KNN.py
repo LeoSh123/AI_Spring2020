@@ -71,9 +71,9 @@ def KNN(k:int,dataFrame: pd.DataFrame, objectDataFrame: pd.DataFrame, objectInde
 
 
 indices = list(range(0, len(test_df['diagnosis'])))
-length =  len(test_df['diagnosis'])
 
 realClassList = [val for val in test_df['diagnosis']]
+
 
 
 accurateCount = 0
@@ -86,20 +86,20 @@ for i in indices:
     objectDataFrame.drop(index=newIndices, inplace=True)
 
     classification = KNN(9,train_df,objectDataFrame,i)
-    print("Object number:",i," out of:", length ," its class is:",classification)
+    # print("Object number:",i," out of:", length ," its class is:",classification)
     if classification is True:
         numericalClass =1
     else:
         numericalClass = 0
     if numericalClass == realClassList[i]:
         accurateCount += 1
-        print("classification was accurate")
+        # print("k is:",k ," classification was accurate")
     else:
         inAccurateCount += 1
-        print("classification was not accurate\n")
+        # print("k is:",k ," classification was not accurate ##########\n")
 
 percentage = (accurateCount/(accurateCount + inAccurateCount))*100
-
-
 print(percentage)
+
+
 
