@@ -14,6 +14,7 @@ class Tree:
         self.Classification = False
         self.Feature = None
         self.Vi = None
+        self.Average = None
         self.BelowTree = None
         self.AboveTree = None
 
@@ -77,12 +78,12 @@ def Eps_SelectFeature(dataFrame: pd.DataFrame,bigDataFrame: pd.DataFrame) -> (st
         if Feature == 'diagnosis':
             continue
 
-        Vi = np.std(bigDataFrame[Feature])
+        average =  (getMinInCol(Feature, dataFrame) + getMaxInCol(Feature, dataFrame)) /2
         newDataFrameAbove = dataFrame.copy()
         newDataFrameBelow = dataFrame.copy()
 
-        aboveIndex = newDataFrameAbove[newDataFrameAbove[Feature] > Vi].index
-        belowIndex = newDataFrameAbove[newDataFrameAbove[Feature] <= Vi].index
+        aboveIndex = newDataFrameAbove[newDataFrameAbove[Feature] > average].index
+        belowIndex = newDataFrameAbove[newDataFrameAbove[Feature] <= average].index
 
         newDataFrameAbove.drop(belowIndex, inplace=True)
         newDataFrameBelow.drop(aboveIndex, inplace=True)
@@ -100,12 +101,12 @@ def Eps_SelectFeature(dataFrame: pd.DataFrame,bigDataFrame: pd.DataFrame) -> (st
         if Feature == 'diagnosis':
             continue
 
-        Vi = np.std(bigDataFrame[Feature])
+        average = (getMinInCol(Feature, dataFrame) + getMaxInCol(Feature, dataFrame)) / 2
         newDataFrameAbove = dataFrame.copy()
         newDataFrameBelow = dataFrame.copy()
 
-        aboveIndex = newDataFrameAbove[newDataFrameAbove[Feature] > Vi].index
-        belowIndex = newDataFrameAbove[newDataFrameAbove[Feature] <= Vi].index
+        aboveIndex = newDataFrameAbove[newDataFrameAbove[Feature] > average].index
+        belowIndex = newDataFrameAbove[newDataFrameAbove[Feature] <= average].index
 
         newDataFrameAbove.drop(belowIndex, inplace=True)
         newDataFrameBelow.drop(aboveIndex, inplace=True)
@@ -149,13 +150,15 @@ def Eps_TDIDT(dataFrame: pd.DataFrame, classification: bool, x: int, bigDataFram
     selectedFeature = Eps_SelectFeature(dataFrame,bigDataFrame)
 
     newTree.Feature = selectedFeature
-    newTree.Vi = np.std(bigDataFrame[selectedFeature])
+    newTree.Vi = np.std(np.array(bigDataFrame[selectedFeature]))
+    newTree.Average = (getMinInCol(selectedFeature, dataFrame) + getMaxInCol(selectedFeature, dataFrame)) / 2
+
 
     newDataFrameAbove = dataFrame.copy()
     newDataFrameBelow = dataFrame.copy()
 
-    aboveIndex = newDataFrameAbove[newDataFrameAbove[selectedFeature] > newTree.Vi].index
-    belowIndex = newDataFrameAbove[newDataFrameAbove[selectedFeature] <= newTree.Vi].index
+    aboveIndex = newDataFrameAbove[newDataFrameAbove[selectedFeature] > newTree.Average].index
+    belowIndex = newDataFrameAbove[newDataFrameAbove[selectedFeature] <= newTree.Average].index
 
     newDataFrameBelow.drop(columns=selectedFeature, inplace=True)
     newDataFrameAbove.drop(columns=selectedFeature, inplace=True)
@@ -187,12 +190,13 @@ def DT_Epsilon_Classify(dataFrame: pd.DataFrame, tree: Tree, index) -> (int, int
             return 0,1
     feature = tree.Feature
     Vi = tree.Vi
+    Average = tree.Average
     value = dataFrame[feature]
-    if abs(value[index] - Vi) <= 0.1*Vi:
+    if abs(value[index] - Average) <= 0.1*Vi:
         pos1, neg1 = DT_Epsilon_Classify(dataFrame, tree.AboveTree, index)
         pos2, neg2 = DT_Epsilon_Classify(dataFrame, tree.BelowTree, index)
         return pos1+pos2, neg1+neg2
-    elif value[index] > Vi:
+    elif value[index] > Average:
         return DT_Epsilon_Classify(dataFrame, tree.AboveTree, index)
     else:
         return DT_Epsilon_Classify(dataFrame, tree.BelowTree, index)
